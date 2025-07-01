@@ -1,23 +1,147 @@
-// --- Dane i uprawnienia ---
+// ====== JĘZYKI ======
+const LANGUAGES = {
+  en: {
+    brand: "TaskMaster",
+    subtitle: "Your task manager",
+    stats_all: "All",
+    stats_done: "Done",
+    stats_open: "Open",
+    stats_percent: "Completed",
+    list: "List",
+    add_list: "Add list",
+    del_list: "Delete list",
+    settings: "Settings",
+    title_ph: "Task title...",
+    desc_ph: "Description (optional)",
+    priority: "Priority",
+    priority_low: "Low",
+    priority_normal: "Normal",
+    priority_high: "High",
+    icon: "Icon",
+    add: "Add",
+    status: "Status",
+    filter_all: "All",
+    filter_open: "Open",
+    filter_done: "Done",
+    filter_priority: "Priority",
+    edit: "Edit",
+    delete: "Delete",
+    mark_done: "Mark done",
+    revert: "Reopen",
+    comments: "Comments",
+    deadline: "Deadline",
+    attachment: "Attachment link",
+    overdue: "Overdue",
+    owner: "Owner",
+    created: "Created",
+    completed: "Completed",
+    attach: "Attachment",
+    comment_add: "Add comment...",
+    close: "Close",
+    save: "Save",
+    cancel: "Cancel",
+    theme: "Theme",
+    sorting: "Sorting",
+    user: "User",
+    admin: "admin",
+    demo: "demo",
+    language: "Language",
+    confirm_del_list: "Are you sure you want to delete this list?",
+    confirm_del_task: "Are you sure you want to delete this task?",
+    last_list: "Cannot remove the last list!",
+    only_admin_list: "Only admin can add/delete lists!",
+    no_comments: "No comments.",
+    history: "History",
+    comment: "comment",
+    edited: "edited",
+    created_label: "created",
+    completed_label: "completed",
+    restored: "restored",
+    overdue_label: "Overdue"
+  },
+  pl: {
+    brand: "TaskMaster",
+    subtitle: "Twój menedżer zadań",
+    stats_all: "Wszystkie",
+    stats_done: "Ukończone",
+    stats_open: "Otwarte",
+    stats_percent: "Zrealizowano",
+    list: "Lista",
+    add_list: "Dodaj listę",
+    del_list: "Usuń listę",
+    settings: "Ustawienia",
+    title_ph: "Tytuł zadania...",
+    desc_ph: "Opis (opcjonalnie)",
+    priority: "Priorytet",
+    priority_low: "Niski",
+    priority_normal: "Średni",
+    priority_high: "Wysoki",
+    icon: "Ikona",
+    add: "Dodaj",
+    status: "Status",
+    filter_all: "Wszystkie",
+    filter_open: "Otwarte",
+    filter_done: "Zrobione",
+    filter_priority: "Priorytet",
+    edit: "Edytuj",
+    delete: "Usuń",
+    mark_done: "Ukończ",
+    revert: "Przywróć",
+    comments: "Komentarze",
+    deadline: "Termin",
+    attachment: "Link do załącznika",
+    overdue: "Przeterminowane",
+    owner: "Właściciel",
+    created: "Utworzone",
+    completed: "Zakończone",
+    attach: "Załącznik",
+    comment_add: "Dodaj komentarz...",
+    close: "Zamknij",
+    save: "Zapisz",
+    cancel: "Anuluj",
+    theme: "Motyw",
+    sorting: "Sortowanie",
+    user: "Użytkownik",
+    admin: "admin",
+    demo: "demo",
+    language: "Język",
+    confirm_del_list: "Na pewno usunąć tę listę?",
+    confirm_del_task: "Na pewno usunąć to zadanie?",
+    last_list: "Nie można usunąć ostatniej listy!",
+    only_admin_list: "Tylko admin może dodawać/usuwać listy!",
+    no_comments: "Brak komentarzy.",
+    history: "Historia zmian",
+    comment: "komentarz",
+    edited: "edytowano",
+    created_label: "utworzone",
+    completed_label: "ukończone",
+    restored: "przywrócone",
+    overdue_label: "Przeterminowane"
+  }
+};
+let lang = "en";
+
+// ====== UŻYTKOWNICY & UPRAWNIENIA ======
 const USERS = [
   { login: 'admin', role: 'admin' },
   { login: 'demo', role: 'user' }
 ];
-let currentUser = USERS[0]; // domyślnie admin
+let currentUser = USERS[0];
 
 let lists = [
-  { name: "Domyślna", tasks: [] }
+  { name: "Default", tasks: [] }
 ];
 let currentList = 0;
 let settings = {
   theme: "light",
-  sort: "created-desc"
+  sort: "created-desc",
+  lang: "en"
 };
 let editingTaskId = null;
 let statusFilter = "all";
 let priorityFilter = "all";
 
-// -- Elementy DOM --
+// ----------- DOM ELEMENTS -----------
 const userSelect = document.createElement('select');
 userSelect.id = 'user-select';
 userSelect.style.margin = "0 0 12px 0";
@@ -32,6 +156,7 @@ document.querySelector('.container').insertBefore(userSelect, document.querySele
 userSelect.onchange = () => {
   currentUser = USERS.find(u => u.login === userSelect.value);
   renderTasks();
+  applyLanguage();
 };
 
 const taskList = document.getElementById('task-list');
@@ -40,6 +165,21 @@ const taskTitleInput = document.getElementById('task-title-input');
 const taskDescInput = document.getElementById('task-desc-input');
 const taskPriorityInput = document.getElementById('task-priority');
 const taskIconInput = document.getElementById('task-icon');
+const taskDeadlineInput = document.createElement('input');
+taskDeadlineInput.type = "date";
+taskDeadlineInput.id = "task-deadline";
+taskDeadlineInput.style.flex = "1 1 110px";
+taskDeadlineInput.className = "task-deadline";
+taskForm.insertBefore(taskDeadlineInput, taskForm.querySelector('button'));
+
+const taskAttachmentInput = document.createElement('input');
+taskAttachmentInput.type = "url";
+taskAttachmentInput.id = "task-attachment";
+taskAttachmentInput.placeholder = "Attachment link";
+taskAttachmentInput.style.flex = "2 1 140px";
+taskAttachmentInput.className = "task-attachment";
+taskForm.insertBefore(taskAttachmentInput, taskForm.querySelector('button'));
+
 const listsSelect = document.getElementById('lists-select');
 const listName = document.getElementById('list-name');
 const statAll = document.getElementById('stat-all');
@@ -62,12 +202,125 @@ const openSettingsBtn = document.getElementById('open-settings');
 const closeSettingsBtn = document.getElementById('close-settings');
 const themeSelect = document.getElementById('theme-select');
 const sortSelect = document.getElementById('sort-select');
+const langSelect = document.getElementById('lang-select');
 const addListBtn = document.getElementById('add-list-btn');
 const deleteListBtn = document.getElementById('delete-list-btn');
 
-// --- Inicjalizacja ---
+// --- Komentarze / historia ---
+const commentsModal = document.createElement('div');
+commentsModal.className = "modal hidden";
+commentsModal.id = "comments-modal";
+commentsModal.innerHTML = `
+  <h2 id="comments-modal-title">Comments & history</h2>
+  <div id="comments-history" style="max-height:220px;overflow-y:auto;margin-bottom:10px;"></div>
+  <form id="comments-form" style="display:flex;gap:7px;">
+    <input id="comment-input" type="text" placeholder="Add comment..." style="flex:3;border-radius:7px;padding:7px;border:1px solid #e0e6ed;">
+    <button type="submit" style="flex:1;border-radius:7px;">Add</button>
+  </form>
+  <button id="close-comments" style="margin-top:7px;">Close</button>
+`;
+document.body.appendChild(commentsModal);
+const commentsHistory = commentsModal.querySelector("#comments-history");
+const commentsForm = commentsModal.querySelector("#comments-form");
+const commentInput = commentsModal.querySelector("#comment-input");
+const closeCommentsBtn = commentsModal.querySelector("#close-comments");
+let activeCommentsTaskId = null;
+
+closeCommentsBtn.onclick = () => {
+  hideModal(commentsModal);
+  activeCommentsTaskId = null;
+};
+modalBg.onclick = () => {
+  [editModal, settingsModal, commentsModal].forEach(hideModal);
+  editingTaskId = null;
+  activeCommentsTaskId = null;
+};
+window.onkeydown = (e) => {
+  if (e.key === "Escape") {
+    [editModal, settingsModal, commentsModal].forEach(hideModal);
+    editingTaskId = null;
+    activeCommentsTaskId = null;
+  }
+};
+
+// --- JĘZYK: zmiana
+langSelect.onchange = () => {
+  lang = langSelect.value;
+  settings.lang = lang;
+  saveLocal();
+  applyLanguage();
+};
+
+function applyLanguage() {
+  // Branding
+  document.querySelector('.branding-logo').innerHTML = `${LANGUAGES[lang].brand} <span style="color:#f7b731;">PRO</span>`;
+  document.querySelector('.branding-sub').textContent = LANGUAGES[lang].subtitle;
+  // Statystyki
+  document.getElementById('stat-all-label').childNodes[0].nodeValue = LANGUAGES[lang].stats_all + ": ";
+  document.getElementById('stat-done-label').childNodes[0].nodeValue = LANGUAGES[lang].stats_done + ": ";
+  document.getElementById('stat-open-label').childNodes[0].nodeValue = LANGUAGES[lang].stats_open + ": ";
+  document.getElementById('stat-percent-label').childNodes[0].nodeValue = LANGUAGES[lang].stats_percent + ": ";
+  // List bar
+  document.getElementById('label-list').textContent = LANGUAGES[lang].list + ":";
+  addListBtn.title = LANGUAGES[lang].add_list;
+  deleteListBtn.title = LANGUAGES[lang].del_list;
+  // Filtry
+  document.getElementById('label-status').childNodes[0].nodeValue = LANGUAGES[lang].status + ":";
+  document.getElementById('label-priority').childNodes[0].nodeValue = LANGUAGES[lang].priority + ":";
+  statusFilterSelect.options[0].text = LANGUAGES[lang].filter_all;
+  statusFilterSelect.options[1].text = LANGUAGES[lang].filter_open;
+  statusFilterSelect.options[2].text = LANGUAGES[lang].filter_done;
+  priorityFilterSelect.options[0].text = LANGUAGES[lang].filter_all;
+  priorityFilterSelect.options[1].text = LANGUAGES[lang].priority_high;
+  priorityFilterSelect.options[2].text = LANGUAGES[lang].priority_normal;
+  priorityFilterSelect.options[3].text = LANGUAGES[lang].priority_low;
+  // Task form
+  taskTitleInput.placeholder = LANGUAGES[lang].title_ph;
+  taskDescInput.placeholder = LANGUAGES[lang].desc_ph;
+  taskPriorityInput.options[0].text = LANGUAGES[lang].priority + ": " + LANGUAGES[lang].priority_normal;
+  taskPriorityInput.options[1].text = LANGUAGES[lang].priority_low;
+  taskPriorityInput.options[2].text = LANGUAGES[lang].priority_high;
+  taskIconInput.title = LANGUAGES[lang].icon;
+  taskDeadlineInput.placeholder = LANGUAGES[lang].deadline;
+  taskAttachmentInput.placeholder = LANGUAGES[lang].attachment;
+  taskForm.querySelector("button[type='submit']").textContent = LANGUAGES[lang].add;
+  // Edit modal
+  document.getElementById('edit-modal-title').textContent = LANGUAGES[lang].edit + " " + LANGUAGES[lang].title_ph.toLowerCase();
+  editDesc.placeholder = LANGUAGES[lang].desc_ph;
+  editPriority.options[0].text = LANGUAGES[lang].priority + ": " + LANGUAGES[lang].priority_normal;
+  editPriority.options[1].text = LANGUAGES[lang].priority_low;
+  editPriority.options[2].text = LANGUAGES[lang].priority_high;
+  editIcon.title = LANGUAGES[lang].icon;
+  editForm.querySelector("button[type='submit']").textContent = LANGUAGES[lang].save;
+  cancelEditBtn.textContent = LANGUAGES[lang].cancel;
+  // Settings
+  document.getElementById('settings-modal-title').textContent = LANGUAGES[lang].settings;
+  document.getElementById('label-theme').textContent = LANGUAGES[lang].theme + ":";
+  document.getElementById('label-sorting').textContent = LANGUAGES[lang].sorting + ":";
+  document.getElementById('label-language').textContent = LANGUAGES[lang].language + ":";
+  closeSettingsBtn.textContent = LANGUAGES[lang].close;
+  langSelect.options[0].text = "English";
+  langSelect.options[1].text = "Polski";
+  // Comments modal
+  document.getElementById('comments-modal-title').textContent = LANGUAGES[lang].comments + " & " + LANGUAGES[lang].history;
+  commentsForm.querySelector("button[type='submit']").textContent = LANGUAGES[lang].add;
+  commentInput.placeholder = LANGUAGES[lang].comment_add;
+  closeCommentsBtn.textContent = LANGUAGES[lang].close;
+  // User select
+  userSelect.options[0].textContent = LANGUAGES[lang].admin + " (admin)";
+  userSelect.options[1].textContent = LANGUAGES[lang].demo + " (" + LANGUAGES[lang].user + ")";
+  // Render everything else
+  renderListsSelect();
+  renderTasks();
+  updateStats();
+}
+
+// --- INICJALIZACJA ---
 window.onload = () => {
   loadLocal();
+  if (settings.lang) lang = settings.lang;
+  langSelect.value = lang;
+  applyLanguage();
   renderListsSelect();
   renderTasks();
   updateStats();
@@ -94,16 +347,13 @@ function renderListsSelect() {
 function getFilteredAndSortedTasks() {
   let tasks = [...lists[currentList].tasks];
 
-  // Filtrowanie po statusie
   if (statusFilter !== "all") {
     tasks = tasks.filter(t => statusFilter === "done" ? t.completed : !t.completed);
   }
-  // Filtrowanie po priorytecie
   if (priorityFilter !== "all") {
     tasks = tasks.filter(t => t.priority === priorityFilter);
   }
 
-  // Sortowanie
   switch (settings.sort) {
     case "created-asc":
       tasks.sort((a, b) => a.created - b.created); break;
@@ -136,27 +386,50 @@ function renderTasks() {
     const canDelete = isAdmin || isOwner;
     const canComplete = isAdmin || isOwner;
 
+    // Deadline
+    let deadlineBadge = '';
+    if (task.deadline) {
+      const deadlineDate = new Date(task.deadline);
+      const today = new Date();
+      if (!task.completed && deadlineDate < new Date(today.toDateString())) {
+        deadlineBadge = `<span class="badge" style="background:#e64c3c;">${LANGUAGES[lang].overdue}</span>`;
+      } else if (!task.completed) {
+        deadlineBadge = `<span class="badge" style="background:#218cfa;">${LANGUAGES[lang].deadline}: ${escapeHtml(task.deadline)}</span>`;
+      } else {
+        deadlineBadge = `<span class="badge" style="background:#aaa;">${LANGUAGES[lang].completed}: ${escapeHtml(task.deadline)}</span>`;
+      }
+    }
+
+    // Załącznik
+    let attachmentLink = '';
+    if (task.attachment) {
+      attachmentLink = `<a href="${escapeHtml(task.attachment)}" target="_blank" style="margin-left:7px;font-size:1.1em;" title="${LANGUAGES[lang].attach}">📎</a>`;
+    }
+
     li.innerHTML = `
-      <span class="task-icon" title="Ikonka">${task.icon || "📝"}</span>
+      <span class="task-icon" title="${LANGUAGES[lang].icon}">${task.icon || "📝"}</span>
       <div class="task-main">
         <span class="task-title">
           ${escapeHtml(task.title)}
           ${task.completed
-            ? `<span class="badge done">Zrobione</span>`
-            : `<span class="badge open">Otwarte</span>`
+            ? `<span class="badge done">${LANGUAGES[lang].stats_done}</span>`
+            : `<span class="badge open">${LANGUAGES[lang].stats_open}</span>`
           }
-          <span class="badge priority-${escapeHtml(task.priority)}" title="Priorytet">
+          <span class="badge priority-${escapeHtml(task.priority)}" title="${LANGUAGES[lang].priority}">
             ${priorityLabel(task.priority)}
           </span>
-          <span class="badge" style="background:#bbb;font-size:0.8em;" title="Właściciel">${escapeHtml(task.owner)}</span>
+          <span class="badge" style="background:#bbb;font-size:0.8em;" title="${LANGUAGES[lang].owner}">${escapeHtml(task.owner)}</span>
+          ${deadlineBadge}
+          ${attachmentLink}
         </span>
         ${task.desc ? `<span class="task-desc">${escapeHtml(task.desc)}</span>` : ''}
-        <span class="task-date" title="Data utworzenia">${formatDate(task.created)}</span>
+        <span class="task-date" title="${LANGUAGES[lang].created}">${formatDate(task.created)}</span>
       </div>
       <div class="task-actions">
-        <button class="action-btn complete-btn" title="Oznacz jako wykonane" ${canComplete ? "" : "disabled"}>${task.completed ? '↩️' : '✅'}</button>
-        <button class="action-btn edit-btn" title="Edytuj" ${canEdit ? "" : "disabled"}>✏️</button>
-        <button class="action-btn delete-btn" title="Usuń" ${canDelete ? "" : "disabled"}>🗑️</button>
+        <button class="action-btn complete-btn" title="${canComplete ? LANGUAGES[lang].mark_done : ''}" ${canComplete ? "" : "disabled"}>${task.completed ? '↩️' : '✅'}</button>
+        <button class="action-btn edit-btn" title="${canEdit ? LANGUAGES[lang].edit : ''}" ${canEdit ? "" : "disabled"}>✏️</button>
+        <button class="action-btn delete-btn" title="${canDelete ? LANGUAGES[lang].delete : ''}" ${canDelete ? "" : "disabled"}>🗑️</button>
+        <button class="action-btn comments-btn" title="${LANGUAGES[lang].comments}">💬</button>
       </div>
     `;
 
@@ -164,6 +437,7 @@ function renderTasks() {
     if (canComplete) li.querySelector('.complete-btn').onclick = () => toggleTaskById(id);
     if (canEdit) li.querySelector('.edit-btn').onclick = () => openEditModalById(id);
     if (canDelete) li.querySelector('.delete-btn').onclick = () => deleteTaskById(id);
+    li.querySelector('.comments-btn').onclick = () => openCommentsModal(id);
 
     taskList.appendChild(li);
   });
@@ -172,7 +446,6 @@ function renderTasks() {
 }
 
 function updateStats() {
-  // Statystyki zawsze pokazują pełną listę, nie przefiltrowaną!
   const tasks = lists[currentList].tasks;
   const all = tasks.length;
   const done = tasks.filter(t => t.completed).length;
@@ -190,6 +463,8 @@ taskForm.onsubmit = (e) => {
   const desc = taskDescInput.value.trim();
   const priority = taskPriorityInput.value || "normal";
   const icon = taskIconInput.value || "📝";
+  const deadline = taskDeadlineInput.value || '';
+  const attachment = taskAttachmentInput.value.trim();
   if (title) {
     lists[currentList].tasks.push({
       title,
@@ -198,9 +473,17 @@ taskForm.onsubmit = (e) => {
       created: Date.now() + Math.floor(Math.random() * 99999),
       priority,
       icon,
-      owner: currentUser.login
+      deadline,
+      attachment,
+      owner: currentUser.login,
+      comments: [],
+      history: [
+        { type: LANGUAGES[lang].created_label, date: Date.now(), who: currentUser.login }
+      ]
     });
     taskForm.reset();
+    taskDeadlineInput.value = '';
+    taskAttachmentInput.value = '';
     renderTasks();
   }
 };
@@ -214,6 +497,12 @@ function toggleTaskById(id) {
   if (idx !== -1) {
     if (currentUser.role === "admin" || lists[currentList].tasks[idx].owner === currentUser.login) {
       lists[currentList].tasks[idx].completed = !lists[currentList].tasks[idx].completed;
+      lists[currentList].tasks[idx].history = lists[currentList].tasks[idx].history || [];
+      lists[currentList].tasks[idx].history.push({
+        type: lists[currentList].tasks[idx].completed ? LANGUAGES[lang].completed_label : LANGUAGES[lang].restored,
+        date: Date.now(),
+        who: currentUser.login
+      });
       renderTasks();
     }
   }
@@ -223,7 +512,7 @@ function deleteTaskById(id) {
   const idx = findTaskIndexById(id);
   if (idx !== -1) {
     if (currentUser.role === "admin" || lists[currentList].tasks[idx].owner === currentUser.login) {
-      if (confirm("Na pewno usunąć to zadanie?")) {
+      if (confirm(LANGUAGES[lang].confirm_del_task)) {
         lists[currentList].tasks.splice(idx, 1);
         renderTasks();
       }
@@ -242,6 +531,36 @@ function openEditModalById(id) {
   editDesc.value = task.desc || '';
   editPriority.value = task.priority || "normal";
   editIcon.value = task.icon || "📝";
+
+  // deadline + attachment do modala
+  if (!editForm.querySelector("#edit-deadline")) {
+    const editDeadline = document.createElement('input');
+    editDeadline.type = "date";
+    editDeadline.id = "edit-deadline";
+    editDeadline.style.borderRadius = "8px";
+    editDeadline.style.border = "1px solid #e0e6ed";
+    editDeadline.style.padding = "7px";
+    editDeadline.style.fontSize = "1rem";
+    editDeadline.style.background = "var(--main-bg)";
+    editDeadline.className = "edit-deadline";
+    editForm.insertBefore(editDeadline, editForm.querySelector('button'));
+  }
+  if (!editForm.querySelector("#edit-attachment")) {
+    const editAttachment = document.createElement('input');
+    editAttachment.type = "url";
+    editAttachment.id = "edit-attachment";
+    editAttachment.placeholder = LANGUAGES[lang].attachment;
+    editAttachment.style.borderRadius = "8px";
+    editAttachment.style.border = "1px solid #e0e6ed";
+    editAttachment.style.padding = "7px";
+    editAttachment.style.fontSize = "1rem";
+    editAttachment.style.background = "var(--main-bg)";
+    editAttachment.className = "edit-attachment";
+    editForm.insertBefore(editAttachment, editForm.querySelector('button'));
+  }
+  editForm.querySelector("#edit-deadline").value = (task.deadline || '');
+  editForm.querySelector("#edit-attachment").value = (task.attachment || '');
+
   showModal(editModal);
 }
 editForm.onsubmit = (e) => {
@@ -254,6 +573,15 @@ editForm.onsubmit = (e) => {
         lists[currentList].tasks[idx].desc = editDesc.value.trim();
         lists[currentList].tasks[idx].priority = editPriority.value;
         lists[currentList].tasks[idx].icon = editIcon.value;
+        // deadline + attachment
+        lists[currentList].tasks[idx].deadline = editForm.querySelector("#edit-deadline").value || '';
+        lists[currentList].tasks[idx].attachment = editForm.querySelector("#edit-attachment").value.trim();
+        lists[currentList].tasks[idx].history = lists[currentList].tasks[idx].history || [];
+        lists[currentList].tasks[idx].history.push({
+          type: LANGUAGES[lang].edited,
+          date: Date.now(),
+          who: currentUser.login
+        });
       }
     }
     hideModal(editModal);
@@ -266,6 +594,66 @@ cancelEditBtn.onclick = () => {
   editingTaskId = null;
 };
 
+// --- Komentarze / historia ---
+function openCommentsModal(taskId) {
+  activeCommentsTaskId = taskId;
+  const idx = findTaskIndexById(taskId);
+  if (idx === -1) return;
+  const task = lists[currentList].tasks[idx];
+  // Komentarze
+  let html = "";
+  if (task.comments && task.comments.length > 0) {
+    html += `<div><b>${LANGUAGES[lang].comments}:</b></div>`;
+    task.comments.forEach(c =>
+      html += `<div style="margin-bottom:4px;">
+        <span style="font-weight:500;">${escapeHtml(c.who)}</span>:
+        <span>${escapeHtml(c.text)}</span>
+        <span style="color:#888;font-size:0.88em;">(${formatDate(c.date)})</span>
+      </div>`
+    );
+  } else {
+    html += `<div style="color:#aaa;">${LANGUAGES[lang].no_comments}</div>`;
+  }
+  // Historia
+  if (task.history && task.history.length > 0) {
+    html += `<hr style="margin:10px 0;">`;
+    html += `<div><b>${LANGUAGES[lang].history}:</b></div>`;
+    task.history.forEach(h =>
+      html += `<div style="margin-bottom:3px;">
+        <span style="font-weight:500;">${escapeHtml(h.who)}</span> 
+        <span>${escapeHtml(h.type)}</span>
+        <span style="color:#888;font-size:0.88em;">(${formatDate(h.date)})</span>
+      </div>`
+    );
+  }
+  commentsHistory.innerHTML = html;
+  commentInput.value = "";
+  showModal(commentsModal);
+}
+commentsForm.onsubmit = (e) => {
+  e.preventDefault();
+  if (activeCommentsTaskId !== null && commentInput.value.trim()) {
+    const idx = findTaskIndexById(activeCommentsTaskId);
+    if (idx !== -1) {
+      lists[currentList].tasks[idx].comments = lists[currentList].tasks[idx].comments || [];
+      lists[currentList].tasks[idx].comments.push({
+        who: currentUser.login,
+        text: commentInput.value.trim(),
+        date: Date.now()
+      });
+      lists[currentList].tasks[idx].history = lists[currentList].tasks[idx].history || [];
+      lists[currentList].tasks[idx].history.push({
+        type: LANGUAGES[lang].comment,
+        date: Date.now(),
+        who: currentUser.login
+      });
+      openCommentsModal(activeCommentsTaskId);
+    }
+    commentInput.value = "";
+    saveLocal();
+  }
+};
+
 // --- Listy ---
 listsSelect.onchange = () => {
   currentList = Number(listsSelect.value);
@@ -275,10 +663,10 @@ listsSelect.onchange = () => {
 
 addListBtn.onclick = () => {
   if (currentUser.role !== "admin") {
-    alert("Tylko admin może dodawać listy!");
+    alert(LANGUAGES[lang].only_admin_list);
     return;
   }
-  const name = prompt("Nazwa nowej listy:");
+  const name = prompt(LANGUAGES[lang].add_list + ":");
   if (name && name.trim()) {
     lists.push({ name: name.trim(), tasks: [] });
     currentList = lists.length - 1;
@@ -288,14 +676,14 @@ addListBtn.onclick = () => {
 };
 deleteListBtn.onclick = () => {
   if (currentUser.role !== "admin") {
-    alert("Tylko admin może usuwać listy!");
+    alert(LANGUAGES[lang].only_admin_list);
     return;
   }
   if (lists.length === 1) {
-    alert("Nie można usunąć ostatniej listy!");
+    alert(LANGUAGES[lang].last_list);
     return;
   }
-  if (confirm("Na pewno usunąć tę listę zadań?")) {
+  if (confirm(LANGUAGES[lang].confirm_del_list)) {
     lists.splice(currentList, 1);
     if (currentList > 0) currentList--;
     renderListsSelect();
@@ -307,6 +695,7 @@ deleteListBtn.onclick = () => {
 openSettingsBtn.onclick = () => {
   themeSelect.value = settings.theme;
   sortSelect.value = settings.sort;
+  langSelect.value = lang;
   showModal(settingsModal);
 };
 closeSettingsBtn.onclick = () => {
@@ -347,23 +736,25 @@ function hideModal(modal) {
   modal.classList.add('hidden');
 }
 modalBg.onclick = () => {
-  [editModal, settingsModal].forEach(hideModal);
+  [editModal, settingsModal, commentsModal].forEach(hideModal);
   editingTaskId = null;
+  activeCommentsTaskId = null;
 };
 window.onkeydown = (e) => {
   if (e.key === "Escape") {
-    [editModal, settingsModal].forEach(hideModal);
+    [editModal, settingsModal, commentsModal].forEach(hideModal);
     editingTaskId = null;
+    activeCommentsTaskId = null;
   }
 };
 
 // --- Utils ---
 function escapeHtml(text) {
-  return text.replace(/[&<>"']/g, function(m) {
+  return text ? text.replace(/[&<>"']/g, function(m) {
     return ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
     })[m];
-  });
+  }) : '';
 }
 function getPriorityWeight(priority) {
   switch(priority) {
@@ -375,15 +766,15 @@ function getPriorityWeight(priority) {
 }
 function priorityLabel(priority) {
   switch(priority) {
-    case "high": return "Wysoki";
-    case "normal": return "Średni";
-    case "low": return "Niski";
-    default: return "Średni";
+    case "high": return LANGUAGES[lang].priority_high;
+    case "normal": return LANGUAGES[lang].priority_normal;
+    case "low": return LANGUAGES[lang].priority_low;
+    default: return LANGUAGES[lang].priority_normal;
   }
 }
 function formatDate(ts) {
   const d = new Date(ts);
-  return d.toLocaleDateString('pl-PL', {
+  return d.toLocaleDateString(lang === "pl" ? 'pl-PL' : 'en-GB', {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit'
   });
@@ -394,12 +785,15 @@ function saveLocal() {
   localStorage.setItem('taskManagerLists', JSON.stringify(lists));
   localStorage.setItem('taskManagerCurrentList', currentList);
   localStorage.setItem('taskManagerSettings', JSON.stringify(settings));
+  localStorage.setItem('taskManagerLang', lang);
 }
 function loadLocal() {
   const l = localStorage.getItem('taskManagerLists');
   const s = localStorage.getItem('taskManagerSettings');
   const cl = localStorage.getItem('taskManagerCurrentList');
+  const lng = localStorage.getItem('taskManagerLang');
   if (l) lists = JSON.parse(l);
   if (cl) currentList = Number(cl);
   if (s) settings = { ...settings, ...JSON.parse(s) };
+  if (lng) lang = lng;
 }

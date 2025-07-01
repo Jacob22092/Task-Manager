@@ -12,6 +12,8 @@
   --badge-priority-high: #ff5a5f;
   --badge-priority-normal: #f7b731;
   --badge-priority-low: #2ecc70;
+  --brand: #3a8efd;
+  --brand-shadow: #b3d1fc;
   --text: #222;
   --text-light: #888;
   --border: #e0e6ed;
@@ -32,6 +34,8 @@ body[data-theme="dark"] {
   --badge-priority-high: #ff5a5f;
   --badge-priority-normal: #f7b731;
   --badge-priority-low: #2ecc70;
+  --brand: #3a8efd;
+  --brand-shadow: #2c3f77;
   --text: #f3f6fa;
   --text-light: #aaa;
   --border: #25304a;
@@ -48,38 +52,105 @@ body {
   transition: background 0.4s, color 0.3s;
 }
 
+/* ------ BRANDING ------ */
+.branding {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0 10px 0;
+}
+.branding-logo {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--brand);
+  text-shadow: 0 4px 16px var(--brand-shadow);
+  margin-right: 12px;
+}
+.branding-sub {
+  font-size: 1.08rem;
+  color: var(--primary-dark);
+  letter-spacing: 0.2em;
+  font-weight: 500;
+}
+
+/* ------ CONTAINER ------ */
 .container {
   max-width: 520px;
-  margin: 48px auto;
+  margin: 18px auto 32px auto;
   background: var(--card-bg);
   box-shadow: var(--shadow);
   border-radius: 22px;
-  padding: 30px 22px 24px 22px;
+  padding: 22px 12px 18px 12px;
   backdrop-filter: var(--card-blur);
   position: relative;
   transition: background 0.3s, box-shadow 0.3s;
 }
 
+/* ------ SELECTS ------ */
+select,
+#user-select,
+#task-priority,
+#edit-priority,
+#task-icon,
+#edit-icon,
+#task-deadline,
+#edit-deadline,
+#lists-select,
+#status-filter,
+#priority-filter {
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--main-bg);
+  color: var(--text);
+  padding: 8px 10px;
+  margin: 0;
+  min-width: 76px;
+  outline: none;
+  appearance: none;
+  transition: border 0.2s, background 0.2s;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(58,142,253,0.04);
+}
+select:focus, 
+#user-select:focus,
+#task-priority:focus,
+#edit-priority:focus,
+#task-icon:focus,
+#edit-icon:focus,
+#lists-select:focus,
+#status-filter:focus,
+#priority-filter:focus {
+  border: 1.7px solid var(--primary);
+  background: #eaf3ff;
+}
+.lists-bar select,
+.filters select,
+#user-select {
+  min-width: 110px;
+}
+
+/* ------ HEADER ------ */
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 2px;
+  gap: 4px;
 }
-
 header h1 {
   margin: 0 0 0 4px;
-  font-size: 1.6rem;
+  font-size: 1.25rem;
   letter-spacing: 0.5px;
   font-weight: 700;
 }
-
 header #list-name {
   font-size: 1.1rem;
   color: var(--primary-dark);
   margin-left: 6px;
 }
-
 #open-settings {
   background: none;
   border: none;
@@ -91,26 +162,20 @@ header #list-name {
 }
 #open-settings:hover { color: var(--primary-dark); }
 
+/* ------ BARS ------ */
 .lists-bar {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 18px;
-}
-.lists-bar select {
-  font-size: 1rem;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  padding: 3px 8px;
-  background: var(--card-bg);
-  color: var(--text);
+  flex-wrap: wrap;
 }
 .lists-bar button {
   background: var(--accent);
   border: none;
   border-radius: 7px;
   padding: 4px 9px;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -118,13 +183,13 @@ header #list-name {
   background: var(--primary);
   color: #fff;
 }
-
 .stats {
   display: flex;
   justify-content: space-between;
   padding: 8px 0 12px 0;
   margin-bottom: 10px;
   font-size: 1.04rem;
+  flex-wrap: wrap;
 }
 .stats div {
   min-width: 64px;
@@ -132,13 +197,14 @@ header #list-name {
   font-weight: 500;
 }
 
+/* ------ FORM ------ */
 #task-form {
   display: flex;
   gap: 7px;
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
-#task-title-input, #task-desc-input, #task-priority, #task-icon {
+#task-title-input, #task-desc-input, #task-priority, #task-icon, #task-deadline, #task-attachment {
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 1rem;
@@ -146,14 +212,10 @@ header #list-name {
   background: var(--main-bg);
   color: var(--text);
   transition: background 0.2s;
-}
-#task-title-input, #task-desc-input {
   flex: 2 1 160px;
+  min-width: 70px;
+  max-width: 100%;
 }
-#task-priority, #task-icon {
-  flex: 1 1 100px;
-}
-
 #task-form button {
   padding: 10px 20px;
   background: var(--primary);
@@ -181,6 +243,7 @@ header #list-name {
   gap: 5px;
 }
 
+/* ------ TASKS ------ */
 #task-list {
   list-style: none;
   padding: 0;
@@ -288,6 +351,7 @@ header #list-name {
   color: var(--success);
 }
 
+/* ------ MODALS ------ */
 .modal-bg {
   position: fixed;
   z-index: 20;
@@ -363,12 +427,35 @@ header #list-name {
   display: none !important;
 }
 
-@media (max-width: 600px) {
-  .container { padding: 10px 1vw; }
-  header h1 { font-size: 1.1rem; }
+/* ------ RESPONSYWNOŚĆ ------ */
+@media (max-width: 700px) {
+  .container {
+    max-width: 100vw;
+    border-radius: 0;
+    padding: 8px 0 14px 0;
+    margin: 0;
+  }
+  .branding {
+    padding: 14px 0 6px 0;
+  }
+  .branding-logo { font-size: 1.5rem; }
+  .branding-sub { font-size: 0.93rem; }
+  header h1 { font-size: 1.05rem; }
+}
+
+@media (max-width: 520px) {
+  .container { padding: 2vw 0 12px 0; }
+  .branding-logo { font-size: 1.12rem; }
+  .branding-sub { font-size: 0.81rem; }
+  .stats, .filters, .lists-bar { flex-direction: column; gap: 7px;}
+  #task-form { flex-direction: column; gap: 7px;}
   .task-title { font-size: 1rem; }
-  .task-desc { font-size: 0.9rem; }
-  #task-list { gap: 12px; }
+  .task-desc { font-size: 0.93rem; }
+  #task-list { gap: 11px; }
+  .modal { padding: 10px 5vw 8px 5vw; }
+  .modal h2 { font-size: 1.09rem;}
+  .modal button { font-size: 0.96rem;}
+  .badge { font-size: 0.82rem;}
 }
 
 @keyframes fadeIn {

@@ -57,7 +57,7 @@ const LANGUAGES = {
     created_label: "created",
     completed_label: "completed",
     restored: "restored",
-    overdue_label: "Overdue"
+    overdue_label: "Overdue "
   },
   pl: {
     brand: "TaskMaster",

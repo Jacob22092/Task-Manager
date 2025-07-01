@@ -1,39 +1,45 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Task Manager PRO</title>
+  <title>TaskMaster PRO</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Branding -->
+  <div class="branding">
+    <span class="branding-logo">TaskMaster</span>
+    <span class="branding-sub">Your task manager</span>
+  </div>
   <div class="container">
+    <!-- User select will be injected here by JS -->
     <header>
       <h1>Task Manager <span id="list-name"></span></h1>
-      <button id="open-settings" title="Ustawienia">⚙️</button>
+      <button id="open-settings" title="Settings">⚙️</button>
     </header>
 
     <div class="lists-bar">
-      <label>Lista:</label>
+      <label id="label-list">List:</label>
       <select id="lists-select"></select>
-      <button id="add-list-btn" title="Dodaj listę">➕</button>
-      <button id="delete-list-btn" title="Usuń listę">🗑️</button>
+      <button id="add-list-btn" title="Add list">➕</button>
+      <button id="delete-list-btn" title="Delete list">🗑️</button>
     </div>
 
     <section class="stats">
-      <div>Wszystkie: <span id="stat-all">0</span></div>
-      <div>Ukończone: <span id="stat-done">0</span></div>
-      <div>Otwarte: <span id="stat-open">0</span></div>
-      <div>Zrealizowano: <span id="stat-percent">0%</span></div>
+      <div id="stat-all-label">All: <span id="stat-all">0</span></div>
+      <div id="stat-done-label">Done: <span id="stat-done">0</span></div>
+      <div id="stat-open-label">Open: <span id="stat-open">0</span></div>
+      <div id="stat-percent-label">Completed: <span id="stat-percent">0%</span></div>
     </section>
 
     <form id="task-form">
-      <input type="text" id="task-title-input" placeholder="Tytuł zadania..." autocomplete="off" required>
-      <input type="text" id="task-desc-input" placeholder="Opis (opcjonalnie)" autocomplete="off">
+      <input type="text" id="task-title-input" placeholder="Task title..." autocomplete="off" required>
+      <input type="text" id="task-desc-input" placeholder="Description (optional)" autocomplete="off">
       <select id="task-priority">
-        <option value="normal">Priorytet: Średni</option>
-        <option value="low">Niski</option>
-        <option value="high">Wysoki</option>
+        <option value="normal">Priority: Normal</option>
+        <option value="low">Low</option>
+        <option value="high">High</option>
       </select>
       <select id="task-icon">
         <option value="📝">📝</option>
@@ -47,23 +53,24 @@
         <option value="🔔">🔔</option>
         <option value="🛠️">🛠️</option>
       </select>
-      <button type="submit">Dodaj</button>
+      <!-- Deadline & Attachment inputs injected by JS -->
+      <button type="submit">Add</button>
     </form>
 
     <div class="filters">
-      <label>Status:
+      <label id="label-status">Status:
         <select id="status-filter">
-          <option value="all">Wszystkie</option>
-          <option value="open">Otwarte</option>
-          <option value="done">Zrobione</option>
+          <option value="all">All</option>
+          <option value="open">Open</option>
+          <option value="done">Done</option>
         </select>
       </label>
-      <label>Priorytet:
+      <label id="label-priority">Priority:
         <select id="priority-filter">
-          <option value="all">Wszystkie</option>
-          <option value="high">Wysoki</option>
-          <option value="normal">Średni</option>
-          <option value="low">Niski</option>
+          <option value="all">All</option>
+          <option value="high">High</option>
+          <option value="normal">Normal</option>
+          <option value="low">Low</option>
         </select>
       </label>
     </div>
@@ -71,17 +78,17 @@
     <ul id="task-list"></ul>
   </div>
 
-  <!-- Modale -->
+  <!-- Modals -->
   <div id="modal-bg" class="modal-bg hidden"></div>
   <div id="edit-modal" class="modal hidden">
-    <h2>Edytuj zadanie</h2>
+    <h2 id="edit-modal-title">Edit task</h2>
     <form id="edit-form">
       <input type="text" id="edit-title" required>
-      <textarea id="edit-desc" rows="3" placeholder="Opis"></textarea>
+      <textarea id="edit-desc" rows="3" placeholder="Description"></textarea>
       <select id="edit-priority">
-        <option value="normal">Priorytet: Średni</option>
-        <option value="low">Niski</option>
-        <option value="high">Wysoki</option>
+        <option value="normal">Priority: Normal</option>
+        <option value="low">Low</option>
+        <option value="high">High</option>
       </select>
       <select id="edit-icon">
         <option value="📝">📝</option>
@@ -95,32 +102,42 @@
         <option value="🔔">🔔</option>
         <option value="🛠️">🛠️</option>
       </select>
-      <button type="submit">Zapisz</button>
-      <button type="button" id="cancel-edit">Anuluj</button>
+      <!-- Deadline & Attachment inputs injected by JS -->
+      <button type="submit">Save</button>
+      <button type="button" id="cancel-edit">Cancel</button>
     </form>
   </div>
   <div id="settings-modal" class="modal hidden">
-    <h2>Ustawienia</h2>
+    <h2 id="settings-modal-title">Settings</h2>
     <div class="settings-row">
-      <label>Motyw:</label>
+      <label id="label-theme">Theme:</label>
       <select id="theme-select">
-        <option value="light">Jasny</option>
-        <option value="dark">Ciemny</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
       </select>
     </div>
     <div class="settings-row">
-      <label>Sortowanie:</label>
+      <label id="label-sorting">Sorting:</label>
       <select id="sort-select">
-        <option value="created-desc">Najnowsze na górze</option>
-        <option value="created-asc">Najstarsze na górze</option>
-        <option value="alpha-asc">Alfabetycznie A-Z</option>
-        <option value="alpha-desc">Alfabetycznie Z-A</option>
-        <option value="priority-desc">Priorytet (wysoki najpierw)</option>
-        <option value="priority-asc">Priorytet (niski najpierw)</option>
+        <option value="created-desc">Newest first</option>
+        <option value="created-asc">Oldest first</option>
+        <option value="alpha-asc">A-Z</option>
+        <option value="alpha-desc">Z-A</option>
+        <option value="priority-desc">Priority (high first)</option>
+        <option value="priority-asc">Priority (low first)</option>
       </select>
     </div>
-    <button id="close-settings">Zamknij</button>
+    <div class="settings-row">
+      <label id="label-language">Language:</label>
+      <select id="lang-select">
+        <option value="en">English</option>
+        <option value="pl">Polski</option>
+      </select>
+    </div>
+    <button id="close-settings">Close</button>
   </div>
+
+  <!-- Comments/history modal is injected by JS -->
 
   <script src="app.js"></script>
 </body>

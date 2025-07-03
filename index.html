@@ -75,6 +75,20 @@
       </label>
     </div>
 
+    <!-- Quick Actions Bar -->
+    <div class="quick-actions">
+      <button id="quick-add-btn" class="quick-btn" title="Quick Add (Ctrl+N)">⚡ Quick Add</button>
+      <button id="search-btn" class="quick-btn" title="Search Tasks (Ctrl+F)">🔍 Search</button>
+      <button id="bulk-actions-btn" class="quick-btn" title="Bulk Actions">📋 Bulk</button>
+      <button id="export-btn" class="quick-btn" title="Export Tasks">📤 Export</button>
+    </div>
+
+    <!-- Search Bar (initially hidden) -->
+    <div id="search-bar" class="search-bar hidden">
+      <input type="text" id="search-input" placeholder="Search tasks..." />
+      <button id="close-search-btn" class="close-search-btn">✕</button>
+    </div>
+
     <ul id="task-list"></ul>
   </div>
 

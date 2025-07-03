@@ -224,10 +224,36 @@ header #list-name {
   border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(58,142,253,0.11);
+  position: relative;
+  overflow: hidden;
+}
+#task-form button:hover { 
+  background: var(--primary-dark); 
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(58,142,253,0.2);
+}
+#task-form button:active {
+  transform: translateY(0);
   box-shadow: 0 2px 8px rgba(58,142,253,0.11);
 }
-#task-form button:hover { background: var(--primary-dark); }
+#task-form button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+#task-form button:active::before {
+  width: 300px;
+  height: 300px;
+}
 
 .filters {
   display: flex;
@@ -241,6 +267,91 @@ header #list-name {
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+/* ------ QUICK ACTIONS ------ */
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.quick-btn {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(58,142,253,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.quick-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(58,142,253,0.3);
+}
+.quick-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+.quick-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+.quick-btn:hover::before {
+  left: 100%;
+}
+
+/* ------ SEARCH BAR ------ */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  border-radius: 20px;
+  border: 2px solid var(--primary);
+  box-shadow: 0 2px 12px rgba(58,142,253,0.15);
+  animation: slideIn 0.3s ease;
+}
+.search-bar.hidden {
+  display: none;
+}
+#search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 1rem;
+  padding: 4px 8px;
+}
+#search-input::placeholder {
+  color: var(--text-light);
+}
+.close-search-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+.close-search-btn:hover {
+  background: var(--danger);
+  color: white;
 }
 
 /* ------ TASKS ------ */
@@ -264,18 +375,34 @@ header #list-name {
   border: 1.7px solid var(--border);
   position: relative;
   animation: fadeIn 0.6s;
-  transition: background 0.25s, box-shadow 0.2s, border 0.18s;
+  transition: all 0.3s ease;
   backdrop-filter: var(--card-blur);
+  cursor: pointer;
 }
 .task-item:hover {
-  box-shadow: 0 4px 24px rgba(58,142,253,0.15);
+  box-shadow: 0 6px 30px rgba(58,142,253,0.2);
   border: 1.7px solid var(--primary);
+  transform: translateY(-2px);
 }
 .task-item.completed {
   background: linear-gradient(90deg, var(--success) 80%, var(--card-bg) 100%);
   color: var(--text-light);
   text-decoration: line-through;
   border: 1.7px solid var(--success);
+}
+.task-item.completed:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(67,233,123,0.2);
+}
+.task-item.adding {
+  animation: slideIn 0.5s ease;
+}
+.task-item.removing {
+  animation: slideOut 0.3s ease forwards;
+}
+@keyframes slideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
 }
 
 .task-item .task-main {
@@ -338,13 +465,38 @@ header #list-name {
   color: var(--primary);
   font-size: 1.19rem;
   cursor: pointer;
-  transition: color 0.12s, background 0.12s;
+  transition: all 0.3s ease;
   padding: 5px 7px;
   border-radius: 6px;
+  position: relative;
+  overflow: hidden;
 }
 .action-btn:hover {
   background: var(--primary);
   color: #fff;
+  transform: scale(1.1);
+}
+.action-btn:active {
+  transform: scale(0.95);
+}
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.action-btn.complete-btn:hover {
+  background: var(--success);
+  animation: pulse 0.6s ease-in-out;
+}
+.action-btn.delete-btn:hover {
+  background: var(--danger);
+  animation: shake 0.5s ease-in-out;
+}
+.action-btn.edit-btn:hover {
+  background: var(--badge-priority-normal);
+}
+.action-btn.comments-btn:hover {
+  background: var(--badge-priority-low);
 }
 
 .task-item.completed .action-btn.complete-btn {
@@ -465,4 +617,22 @@ header #list-name {
 @keyframes fadeInModal {
   from { opacity: 0; transform: scale(0.92);}
   to { opacity: 1; transform: scale(1);}
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px);}
+  to { opacity: 1; transform: translateX(0);}
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }

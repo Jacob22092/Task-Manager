@@ -57,7 +57,15 @@ const LANGUAGES = {
     created_label: "created",
     completed_label: "completed",
     restored: "restored",
-    overdue_label: "Overdue "
+    overdue_label: "Overdue ",
+    quick_add: "Quick Add",
+    search: "Search",
+    bulk_actions: "Bulk Actions",
+    export: "Export",
+    search_placeholder: "Search tasks...",
+    no_results: "No tasks found matching your search.",
+    ctrl_n: "Ctrl+N",
+    ctrl_f: "Ctrl+F"
   },
   pl: {
     brand: "TaskMaster",
@@ -116,7 +124,15 @@ const LANGUAGES = {
     created_label: "utworzone",
     completed_label: "ukończone",
     restored: "przywrócone",
-    overdue_label: "Przeterminowane"
+    overdue_label: "Przeterminowane",
+    quick_add: "Szybkie Dodaj",
+    search: "Szukaj",
+    bulk_actions: "Akcje Grupowe",
+    export: "Eksport",
+    search_placeholder: "Szukaj zadań...",
+    no_results: "Nie znaleziono zadań pasujących do wyszukiwania.",
+    ctrl_n: "Ctrl+N",
+    ctrl_f: "Ctrl+F"
   }
 };
 let lang = "en";
@@ -205,6 +221,18 @@ const sortSelect = document.getElementById('sort-select');
 const langSelect = document.getElementById('lang-select');
 const addListBtn = document.getElementById('add-list-btn');
 const deleteListBtn = document.getElementById('delete-list-btn');
+
+// Quick Actions Elements
+const quickAddBtn = document.getElementById('quick-add-btn');
+const searchBtn = document.getElementById('search-btn');
+const bulkActionsBtn = document.getElementById('bulk-actions-btn');
+const exportBtn = document.getElementById('export-btn');
+const searchBar = document.getElementById('search-bar');
+const searchInput = document.getElementById('search-input');
+const closeSearchBtn = document.getElementById('close-search-btn');
+
+let searchTerm = '';
+let isSearchActive = false;
 
 // --- Komentarze / historia ---
 const commentsModal = document.createElement('div');
@@ -309,6 +337,18 @@ function applyLanguage() {
   // User select
   userSelect.options[0].textContent = LANGUAGES[lang].admin + " (admin)";
   userSelect.options[1].textContent = LANGUAGES[lang].demo + " (" + LANGUAGES[lang].user + ")";
+  
+  // Quick Actions
+  quickAddBtn.textContent = "⚡ " + LANGUAGES[lang].quick_add;
+  quickAddBtn.title = LANGUAGES[lang].quick_add + " (" + LANGUAGES[lang].ctrl_n + ")";
+  searchBtn.textContent = "🔍 " + LANGUAGES[lang].search;
+  searchBtn.title = LANGUAGES[lang].search + " (" + LANGUAGES[lang].ctrl_f + ")";
+  bulkActionsBtn.textContent = "📋 " + LANGUAGES[lang].bulk_actions;
+  bulkActionsBtn.title = LANGUAGES[lang].bulk_actions;
+  exportBtn.textContent = "📤 " + LANGUAGES[lang].export;
+  exportBtn.title = LANGUAGES[lang].export;
+  searchInput.placeholder = LANGUAGES[lang].search_placeholder;
+  
   // Render everything else
   renderListsSelect();
   renderTasks();
@@ -352,6 +392,15 @@ function getFilteredAndSortedTasks() {
   }
   if (priorityFilter !== "all") {
     tasks = tasks.filter(t => t.priority === priorityFilter);
+  }
+  
+  // Search filtering
+  if (searchTerm && searchTerm.trim() !== '') {
+    tasks = tasks.filter(t => 
+      t.title.toLowerCase().includes(searchTerm) ||
+      (t.desc && t.desc.toLowerCase().includes(searchTerm)) ||
+      (t.owner && t.owner.toLowerCase().includes(searchTerm))
+    );
   }
 
   switch (settings.sort) {
@@ -441,6 +490,31 @@ function renderTasks() {
 
     taskList.appendChild(li);
   });
+  
+  // Show "no results" message if search is active and no tasks found
+  if (searchTerm && searchTerm.trim() !== '' && tasks.length === 0) {
+    const noResultsDiv = document.createElement('div');
+    noResultsDiv.className = 'no-results';
+    noResultsDiv.style.cssText = `
+      text-align: center;
+      padding: 30px;
+      color: var(--text-light);
+      font-size: 1.1rem;
+      background: var(--card-bg);
+      border-radius: 17px;
+      border: 2px dashed var(--border);
+      margin: 20px 0;
+    `;
+    noResultsDiv.innerHTML = `
+      <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
+      <div>${LANGUAGES[lang].no_results}</div>
+      <div style="font-size: 0.9rem; margin-top: 10px; color: var(--text-light);">
+        ${LANGUAGES[lang].search}: "<strong>${escapeHtml(searchTerm)}</strong>"
+      </div>
+    `;
+    taskList.appendChild(noResultsDiv);
+  }
+  
   updateStats();
   saveLocal();
 }
@@ -690,6 +764,156 @@ deleteListBtn.onclick = () => {
     renderTasks();
   }
 };
+
+// --- Quick Actions ---
+quickAddBtn.onclick = () => {
+  taskTitleInput.focus();
+  taskTitleInput.scrollIntoView({ behavior: 'smooth' });
+};
+
+searchBtn.onclick = () => {
+  toggleSearch();
+};
+
+bulkActionsBtn.onclick = () => {
+  showBulkActionsModal();
+};
+
+exportBtn.onclick = () => {
+  exportTasks();
+};
+
+closeSearchBtn.onclick = () => {
+  toggleSearch();
+};
+
+searchInput.oninput = (e) => {
+  searchTerm = e.target.value.toLowerCase();
+  renderTasks();
+};
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key === 'n') {
+    e.preventDefault();
+    taskTitleInput.focus();
+    taskTitleInput.scrollIntoView({ behavior: 'smooth' });
+  }
+  if (e.ctrlKey && e.key === 'f') {
+    e.preventDefault();
+    toggleSearch();
+  }
+  if (e.key === 'Escape') {
+    if (isSearchActive) {
+      toggleSearch();
+    }
+  }
+});
+
+function toggleSearch() {
+  isSearchActive = !isSearchActive;
+  if (isSearchActive) {
+    searchBar.classList.remove('hidden');
+    searchInput.focus();
+  } else {
+    searchBar.classList.add('hidden');
+    searchInput.value = '';
+    searchTerm = '';
+    renderTasks();
+  }
+}
+
+function showBulkActionsModal() {
+  // Create a simple bulk actions modal
+  const bulkModal = document.createElement('div');
+  bulkModal.className = 'modal';
+  bulkModal.innerHTML = `
+    <h2>${LANGUAGES[lang].bulk_actions}</h2>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button id="bulk-complete" class="quick-btn">✅ ${LANGUAGES[lang].mark_done} ${LANGUAGES[lang].filter_all}</button>
+      <button id="bulk-delete" class="quick-btn">🗑️ ${LANGUAGES[lang].delete} ${LANGUAGES[lang].filter_all}</button>
+      <button id="bulk-high-priority" class="quick-btn">🔥 ${LANGUAGES[lang].priority_high} ${LANGUAGES[lang].filter_all}</button>
+      <button id="bulk-cancel" class="quick-btn">❌ ${LANGUAGES[lang].cancel}</button>
+    </div>
+  `;
+  
+  document.body.appendChild(bulkModal);
+  showModal(bulkModal);
+  
+  bulkModal.querySelector('#bulk-complete').onclick = () => {
+    bulkCompleteAllTasks();
+    hideModal(bulkModal);
+    document.body.removeChild(bulkModal);
+  };
+  
+  bulkModal.querySelector('#bulk-delete').onclick = () => {
+    if (confirm(`${LANGUAGES[lang].confirm_del_task} (${LANGUAGES[lang].filter_all})`)) {
+      bulkDeleteAllTasks();
+    }
+    hideModal(bulkModal);
+    document.body.removeChild(bulkModal);
+  };
+  
+  bulkModal.querySelector('#bulk-high-priority').onclick = () => {
+    bulkSetPriority('high');
+    hideModal(bulkModal);
+    document.body.removeChild(bulkModal);
+  };
+  
+  bulkModal.querySelector('#bulk-cancel').onclick = () => {
+    hideModal(bulkModal);
+    document.body.removeChild(bulkModal);
+  };
+}
+
+function bulkCompleteAllTasks() {
+  const tasks = getFilteredAndSortedTasks();
+  tasks.forEach(task => {
+    if (!task.completed) {
+      toggleTaskById(task.created);
+    }
+  });
+}
+
+function bulkDeleteAllTasks() {
+  const tasks = getFilteredAndSortedTasks();
+  tasks.forEach(task => {
+    deleteTaskById(task.created);
+  });
+}
+
+function bulkSetPriority(priority) {
+  const tasks = getFilteredAndSortedTasks();
+  tasks.forEach(task => {
+    const taskIdx = lists[currentList].tasks.findIndex(t => t.created === task.created);
+    if (taskIdx !== -1) {
+      lists[currentList].tasks[taskIdx].priority = priority;
+    }
+  });
+  renderTasks();
+}
+
+function exportTasks() {
+  const tasks = lists[currentList].tasks;
+  const exportData = {
+    listName: lists[currentList].name,
+    tasks: tasks,
+    exportDate: new Date().toISOString(),
+    totalTasks: tasks.length,
+    completedTasks: tasks.filter(t => t.completed).length
+  };
+  
+  const dataStr = JSON.stringify(exportData, null, 2);
+  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(dataBlob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `taskmaster-${lists[currentList].name}-${new Date().toISOString().split('T')[0]}.json`;
+  link.click();
+  
+  URL.revokeObjectURL(url);
+}
 
 // --- Ustawienia ---
 openSettingsBtn.onclick = () => {
